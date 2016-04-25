@@ -23,9 +23,9 @@
   var innerWidth  = width  - margin.left - margin.right;
   var innerHeight = height - margin.top  - margin.bottom;
 
-  // TODO: Input the proper values for the scales
-  var xScale = d3.scale.ordinal().rangeRoundBands([0, 10], 0);
-  var yScale = d3.scale.linear().range([30, 0]);
+  // Proper values for the scales
+  var xScale = d3.scale.ordinal().rangeRoundBands([0, innerWidth], 0);
+  var yScale = d3.scale.linear().range([0, height]);
 
   // Define the chart
   var chart = d3
@@ -38,9 +38,10 @@
 
   // Render the chart
   xScale.domain(data.map(function (d){ return d.name; }));
-
-  // TODO: Fix the yScale domain to scale with any ratings range
-  yScale.domain([0, 5]);
+  
+  // yScale domain to scale with any ratings range
+  var range = d3.max( data.map(function(d){ return d.rating; }) );
+  yScale.domain([range, 0]);
 
   // Note all these values are hard coded numbers
   // TODO:
@@ -48,13 +49,13 @@
   // 2. Update the x, y, width, and height attributes to appropriate reflect this
   chart
     .selectAll(".bar")
-    .data([10, 20, 30, 40])
+    .data(data.map(function(d){ return d.rating; }))
     .enter().append("rect")
     .attr("class", "bar")
-    .attr("x", function(d, i) { return i*100; })
-    .attr("width", 100)
-    .attr("y", function(d) { return 0; })
-    .attr("height", function(d) { return d*10; });
+    .attr("x", function(d, i) { return((innerWidth/data.length)*i)+margin.right; })
+    .attr("width", (innerWidth / data.length) - margin.right)
+    .attr("y", function(d) { return height - (height*(d / range)); })
+    .attr("height", function(d) { return height*(d / range); });
 
   // Orient the x and y axis
   var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -62,12 +63,17 @@
 
   // TODO: Append X axis
   chart
-    .append("g");
+    .append("g")
+    .attr("transform", "translate(" + 0 + "," + height + ")")
+    .call(xAxis)
+    .selectAll("text")
+    .attr("transform", "translate(" + 0 + "," + 30 + ")" + " " + "rotate(" + -50 + ")");
 
 
   // TODO: Append Y axis
   chart
-    .append("g");
+    .append("g")
+	.call(yAxis);
 
 
   // ASSIGNMENT PART 1B
